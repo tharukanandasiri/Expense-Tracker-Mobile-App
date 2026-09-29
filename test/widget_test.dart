@@ -6,6 +6,7 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 
 import 'package:expense_tracker_mobile_app/main.dart';
 
@@ -18,5 +19,20 @@ void main() {
     expect(find.text('Total spent'), findsOneWidget);
     expect(find.text('No expenses yet'), findsOneWidget);
     expect(find.text('Add expense'), findsOneWidget);
+  });
+
+  testWidgets('renders without overflow on a narrow viewport', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(960, 2400);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ledgerly'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
