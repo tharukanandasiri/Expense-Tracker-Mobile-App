@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '868512172399',
     projectId: 'expense-tracker-mobile-a-eab13',
     storageBucket: 'expense-tracker-mobile-a-eab13.firebasestorage.app',
+    androidClientId: '868512172399-uj4a3damvhmo2j0pchcbbjjci2eoacgg.apps.googleusercontent.com',
+    iosClientId: '868512172399-vq61nta00omo78kng28919udb860reo0.apps.googleusercontent.com',
     iosBundleId: 'com.example.expenseTrackerMobileApp',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '868512172399',
     projectId: 'expense-tracker-mobile-a-eab13',
     storageBucket: 'expense-tracker-mobile-a-eab13.firebasestorage.app',
+    androidClientId: '868512172399-uj4a3damvhmo2j0pchcbbjjci2eoacgg.apps.googleusercontent.com',
+    iosClientId: '868512172399-vq61nta00omo78kng28919udb860reo0.apps.googleusercontent.com',
     iosBundleId: 'com.example.expenseTrackerMobileApp',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'expense-tracker-mobile-a-eab13.firebasestorage.app',
     measurementId: 'G-DV5LQR8Z64',
   );
+
 }
