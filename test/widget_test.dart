@@ -12,6 +12,7 @@ import 'package:expense_tracker_mobile_app/main.dart';
 void main() {
   testWidgets('shows the empty expense dashboard', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
+    await tester.pumpAndSettle();
 
     expect(find.text('Ledgerly'), findsOneWidget);
     expect(find.text('Total spent'), findsOneWidget);

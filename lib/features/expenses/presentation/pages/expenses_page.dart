@@ -2,21 +2,44 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/expense_category.dart';
+import '../../domain/repositories/expense_repository.dart';
 import '../widgets/expense_form_sheet.dart';
 
-class ExpensesPage extends StatefulWidget {
-  const ExpensesPage({super.key});
+class ExpensesPage extends StatelessWidget {
+  const ExpensesPage({super.key, required this.repository});
+
+  final ExpenseRepository repository;
 
   @override
-  State<ExpensesPage> createState() => _ExpensesPageState();
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Expense>>(
+      stream: repository.watchExpenses(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return _ExpenseErrorView(
+            onRetry: () => (context as Element).markNeedsBuild(),
+          );
+        }
+        if (!snapshot.hasData) return const _ExpenseLoadingView();
+
+        return _ExpenseDashboard(
+          repository: repository,
+          expenses: snapshot.data!,
+        );
+      },
+    );
+  }
 }
 
-class _ExpensesPageState extends State<ExpensesPage> {
-  final List<Expense> _expenses = [];
+class _ExpenseDashboard extends StatelessWidget {
+  const _ExpenseDashboard({required this.repository, required this.expenses});
+
+  final ExpenseRepository repository;
+  final List<Expense> expenses;
 
   List<Expense> get _currentMonthExpenses {
     final now = DateTime.now();
-    return _expenses
+    return expenses
         .where(
           (expense) =>
               expense.date.year == now.year && expense.date.month == now.month,
@@ -28,7 +51,10 @@ class _ExpensesPageState extends State<ExpensesPage> {
   double get _currentMonthTotal =>
       _currentMonthExpenses.fold(0, (total, expense) => total + expense.amount);
 
-  Future<void> _openExpenseForm([Expense? expense]) async {
+  Future<void> _openExpenseForm(
+    BuildContext context, [
+    Expense? expense,
+  ]) async {
     final savedExpense = await showModalBottomSheet<Expense>(
       context: context,
       isScrollControlled: true,
@@ -37,21 +63,16 @@ class _ExpensesPageState extends State<ExpensesPage> {
       builder: (_) => ExpenseFormSheet(initialExpense: expense),
     );
 
-    if (!mounted || savedExpense == null) return;
+    if (savedExpense == null || !context.mounted) return;
 
-    setState(() {
-      final existingIndex = _expenses.indexWhere(
-        (item) => item.id == savedExpense.id,
-      );
-      if (existingIndex == -1) {
-        _expenses.add(savedExpense);
-      } else {
-        _expenses[existingIndex] = savedExpense;
-      }
-    });
+    try {
+      await repository.saveExpense(savedExpense);
+    } catch (error) {
+      if (context.mounted) _showError(context, 'Could not save expense.');
+    }
   }
 
-  Future<void> _deleteExpense(Expense expense) async {
+  Future<void> _deleteExpense(BuildContext context, Expense expense) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -70,9 +91,19 @@ class _ExpensesPageState extends State<ExpensesPage> {
       ),
     );
 
-    if (shouldDelete == true && mounted) {
-      setState(() => _expenses.removeWhere((item) => item.id == expense.id));
+    if (shouldDelete != true || !context.mounted) return;
+
+    try {
+      await repository.deleteExpense(expense.id);
+    } catch (error) {
+      if (context.mounted) _showError(context, 'Could not delete expense.');
     }
+  }
+
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -166,17 +197,57 @@ class _ExpensesPageState extends State<ExpensesPage> {
               ...monthExpenses.map(
                 (expense) => _ExpenseTile(
                   expense: expense,
-                  onEdit: () => _openExpenseForm(expense),
-                  onDelete: () => _deleteExpense(expense),
+                  onEdit: () => _openExpenseForm(context, expense),
+                  onDelete: () => _deleteExpense(context, expense),
                 ),
               ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openExpenseForm,
+        onPressed: () => _openExpenseForm(context),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add expense'),
+      ),
+    );
+  }
+}
+
+class _ExpenseLoadingView extends StatelessWidget {
+  const _ExpenseLoadingView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+}
+
+class _ExpenseErrorView extends StatelessWidget {
+  const _ExpenseErrorView({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cloud_off_rounded, size: 48),
+              const SizedBox(height: 16),
+              const Text('Could not load expenses'),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Try again'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
