@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:expense_tracker_mobile_app/features/expenses/data/repositories/in_memory_expense_repository.dart';
@@ -23,7 +24,26 @@ void main() {
     await tester.pumpWidget(MyApp(repository: repository));
     await tester.pumpAndSettle();
 
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
     expect(find.text('Lunch'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, 500));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'lunch');
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pumpAndSettle();
+    expect(find.text('Lunch'), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, 500));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'shopping');
+    await tester.pumpAndSettle();
+    expect(find.text('No matching expenses'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '');
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Shopping'));
     await tester.pumpAndSettle();
 

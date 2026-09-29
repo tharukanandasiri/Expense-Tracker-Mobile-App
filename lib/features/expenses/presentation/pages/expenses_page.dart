@@ -62,8 +62,22 @@ class _ExpenseDashboard extends StatefulWidget {
 }
 
 class _ExpenseDashboardState extends State<_ExpenseDashboard> {
+  late final TextEditingController _searchController;
   ExpenseCategory? _selectedCategory;
   DateTime? _selectedDate;
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   List<Expense> get _currentMonthExpenses {
     final now = DateTime.now();
@@ -78,6 +92,13 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
 
   List<Expense> get _visibleExpenses {
     return _currentMonthExpenses.where((expense) {
+      final query = _searchQuery.trim().toLowerCase();
+      final searchableText = [
+        expense.title,
+        expense.note ?? '',
+        expense.category.label,
+      ].join(' ').toLowerCase();
+      final matchesSearch = query.isEmpty || searchableText.contains(query);
       final matchesCategory =
           _selectedCategory == null || expense.category == _selectedCategory;
       final matchesDate =
@@ -85,14 +106,17 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
           (expense.date.year == _selectedDate!.year &&
               expense.date.month == _selectedDate!.month &&
               expense.date.day == _selectedDate!.day);
-      return matchesCategory && matchesDate;
+      return matchesSearch && matchesCategory && matchesDate;
     }).toList();
   }
 
   double get _visibleTotal =>
       _visibleExpenses.fold(0, (total, expense) => total + expense.amount);
 
-  bool get _hasFilters => _selectedCategory != null || _selectedDate != null;
+  bool get _hasFilters =>
+      _searchQuery.trim().isNotEmpty ||
+      _selectedCategory != null ||
+      _selectedDate != null;
 
   Future<void> _selectDate() async {
     final selectedDate = await showDatePicker(
@@ -269,6 +293,27 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
               ),
             ),
             const SizedBox(height: 12),
+            TextField(
+              controller: _searchController,
+              onChanged: (value) => setState(() => _searchQuery = value),
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                labelText: 'Search expenses',
+                hintText: 'Title, note, or category',
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: _searchQuery.isEmpty
+                    ? null
+                    : IconButton(
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                        tooltip: 'Clear search',
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
             _ExpenseFilters(
               selectedCategory: _selectedCategory,
               selectedDate: _selectedDate,
@@ -276,6 +321,8 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
                   setState(() => _selectedCategory = category),
               onDateSelected: _selectDate,
               onClear: () => setState(() {
+                _searchController.clear();
+                _searchQuery = '';
                 _selectedCategory = null;
                 _selectedDate = null;
               }),
