@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/theme_controller.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/expense_category.dart';
 import '../../domain/repositories/expense_repository.dart';
 import '../widgets/expense_form_sheet.dart';
 
+IconData _themeIcon(ThemeMode mode) {
+  return switch (mode) {
+    ThemeMode.light => Icons.light_mode_outlined,
+    ThemeMode.dark => Icons.dark_mode_outlined,
+    ThemeMode.system => Icons.brightness_auto_outlined,
+  };
+}
+
 class ExpensesPage extends StatelessWidget {
-  const ExpensesPage({super.key, required this.repository});
+  const ExpensesPage({
+    super.key,
+    required this.repository,
+    required this.themeController,
+  });
 
   final ExpenseRepository repository;
+  final ThemeController themeController;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +39,7 @@ class ExpensesPage extends StatelessWidget {
         return _ExpenseDashboard(
           repository: repository,
           expenses: snapshot.data!,
+          themeController: themeController,
         );
       },
     );
@@ -32,10 +47,15 @@ class ExpensesPage extends StatelessWidget {
 }
 
 class _ExpenseDashboard extends StatefulWidget {
-  const _ExpenseDashboard({required this.repository, required this.expenses});
+  const _ExpenseDashboard({
+    required this.repository,
+    required this.expenses,
+    required this.themeController,
+  });
 
   final ExpenseRepository repository;
   final List<Expense> expenses;
+  final ThemeController themeController;
 
   @override
   State<_ExpenseDashboard> createState() => _ExpenseDashboardState();
@@ -156,6 +176,25 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
+        actions: [
+          if (MediaQuery.sizeOf(context).width >= 240)
+            PopupMenuButton<ThemeMode>(
+              tooltip: 'Choose appearance',
+              icon: Icon(_themeIcon(widget.themeController.themeMode)),
+              onSelected: widget.themeController.setThemeMode,
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: ThemeMode.system,
+                  child: Text('Use system theme'),
+                ),
+                PopupMenuItem(
+                  value: ThemeMode.light,
+                  child: Text('Light theme'),
+                ),
+                PopupMenuItem(value: ThemeMode.dark, child: Text('Dark theme')),
+              ],
+            ),
+        ],
       ),
       body: SafeArea(
         child: ListView(
