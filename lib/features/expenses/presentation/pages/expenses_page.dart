@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/settings/app_settings_controller.dart';
 import '../../../../core/theme/theme_controller.dart';
 import '../../../auth/domain/entities/auth_user.dart';
@@ -189,19 +190,20 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
   }
 
   Future<void> _deleteExpense(BuildContext context, Expense expense) async {
+    final l10n = AppLocalizations.of(context);
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete expense?'),
-        content: Text('Remove "${expense.title}" from your history?'),
+        title: Text(l10n.t('delete_expense')),
+        content: Text(l10n.removeExpense(expense.title)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.t('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
+            child: Text(l10n.t('delete_everything')),
           ),
         ],
       ),
@@ -226,6 +228,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
     final monthExpenses = _visibleExpenses;
 
     return Scaffold(
@@ -244,16 +247,19 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
               tooltip: 'Choose appearance',
               icon: Icon(_themeIcon(widget.themeController.themeMode)),
               onSelected: widget.themeController.setThemeMode,
-              itemBuilder: (context) => const [
+              itemBuilder: (context) => [
                 PopupMenuItem(
                   value: ThemeMode.system,
-                  child: Text('Use system theme'),
+                  child: Text(l10n.t('system_theme')),
                 ),
                 PopupMenuItem(
                   value: ThemeMode.light,
-                  child: Text('Light theme'),
+                  child: Text(l10n.t('light_theme')),
                 ),
-                PopupMenuItem(value: ThemeMode.dark, child: Text('Dark theme')),
+                PopupMenuItem(
+                  value: ThemeMode.dark,
+                  child: Text(l10n.t('dark_theme')),
+                ),
               ],
             ),
             IconButton(
@@ -266,16 +272,19 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
               tooltip: 'Choose appearance',
               icon: Icon(_themeIcon(widget.themeController.themeMode)),
               onSelected: widget.themeController.setThemeMode,
-              itemBuilder: (context) => const [
+              itemBuilder: (context) => [
                 PopupMenuItem(
                   value: ThemeMode.system,
-                  child: Text('Use system theme'),
+                  child: Text(l10n.t('system_theme')),
                 ),
                 PopupMenuItem(
                   value: ThemeMode.light,
-                  child: Text('Light theme'),
+                  child: Text(l10n.t('light_theme')),
                 ),
-                PopupMenuItem(value: ThemeMode.dark, child: Text('Dark theme')),
+                PopupMenuItem(
+                  value: ThemeMode.dark,
+                  child: Text(l10n.t('dark_theme')),
+                ),
               ],
             ),
         ],
@@ -285,7 +294,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
           children: [
             Text(
-              '${MaterialLocalizations.of(context).formatMonthYear(DateTime.now())} overview',
+              '${MaterialLocalizations.of(context).formatMonthYear(DateTime.now())} ${l10n.t('overview')}',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -299,7 +308,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Total spent',
+                      l10n.t('total_spent'),
                       style: theme.textTheme.titleMedium?.copyWith(
                         color: colorScheme.onPrimary.withValues(alpha: 0.8),
                       ),
@@ -325,8 +334,8 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
                         Expanded(
                           child: Text(
                             monthExpenses.isEmpty
-                                ? 'Ready for your first expense'
-                                : '${monthExpenses.length} expense${monthExpenses.length == 1 ? '' : 's'} this month',
+                                ? l10n.t('ready_first')
+                                : l10n.expenseCount(monthExpenses.length),
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onPrimary.withValues(
@@ -350,7 +359,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
             ],
             const SizedBox(height: 32),
             Text(
-              'Recent expenses',
+              l10n.t('recent_expenses'),
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -361,8 +370,8 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
               onChanged: (value) => setState(() => _searchQuery = value),
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                labelText: 'Search expenses',
-                hintText: 'Title, note, or category',
+                labelText: l10n.t('search_expenses'),
+                hintText: l10n.t('search_hint'),
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchQuery.isEmpty
                     ? null
@@ -412,7 +421,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openExpenseForm(context),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add expense'),
+        label: Text(l10n.t('add_expense')),
       ),
     );
   }
@@ -431,6 +440,7 @@ class _CategorySummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
     final totals = <ExpenseCategory, double>{};
     for (final expense in expenses) {
       totals.update(
@@ -466,7 +476,9 @@ class _CategorySummary extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(entry.key.label)),
+                        Expanded(
+                          child: Text(l10n.categoryLabel(entry.key.name)),
+                        ),
                         Text(
                           settingsController.formatAmount(entry.value),
                           style: const TextStyle(fontWeight: FontWeight.w700),
@@ -506,6 +518,7 @@ class _ExpenseErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: Center(
         child: Padding(
@@ -515,12 +528,12 @@ class _ExpenseErrorView extends StatelessWidget {
             children: [
               const Icon(Icons.cloud_off_rounded, size: 48),
               const SizedBox(height: 16),
-              const Text('Could not load expenses'),
+              Text(l10n.t('could_not_load')),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Try again'),
+                label: Text(l10n.t('try_again')),
               ),
             ],
           ),
@@ -549,6 +562,7 @@ class _ExpenseFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = MaterialLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Row(
       children: [
@@ -558,7 +572,10 @@ class _ExpenseFilters extends StatelessWidget {
             child: Row(
               children: [
                 FilterChip(
-                  label: const Text('All'),
+                  label: IntrinsicWidth(
+                    child: Text(l10n.t('all'), softWrap: false),
+                  ),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                   selected: selectedCategory == null,
                   onSelected: (_) => onCategorySelected(null),
                 ),
@@ -567,7 +584,13 @@ class _ExpenseFilters extends StatelessWidget {
                   (category) => Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
-                      label: Text(category.label),
+                      label: IntrinsicWidth(
+                        child: Text(
+                          l10n.categoryLabel(category.name),
+                          softWrap: false,
+                        ),
+                      ),
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                       selected: selectedCategory == category,
                       onSelected: (_) => onCategorySelected(category),
                     ),
@@ -575,11 +598,15 @@ class _ExpenseFilters extends StatelessWidget {
                 ),
                 FilterChip(
                   avatar: const Icon(Icons.calendar_today_outlined, size: 16),
-                  label: Text(
-                    selectedDate == null
-                        ? 'Date'
-                        : localizations.formatShortDate(selectedDate!),
+                  label: IntrinsicWidth(
+                    child: Text(
+                      selectedDate == null
+                          ? l10n.t('date')
+                          : localizations.formatShortDate(selectedDate!),
+                      softWrap: false,
+                    ),
                   ),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 4),
                   selected: selectedDate != null,
                   onSelected: (_) => onDateSelected(),
                 ),
@@ -590,7 +617,7 @@ class _ExpenseFilters extends StatelessWidget {
         if (selectedCategory != null || selectedDate != null)
           IconButton(
             onPressed: onClear,
-            tooltip: 'Clear filters',
+            tooltip: l10n.t('clear_filters'),
             color: colorScheme.primary,
             icon: const Icon(Icons.filter_alt_off_rounded),
           ),
@@ -664,6 +691,7 @@ class _ExpenseTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final localizations = MaterialLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -679,7 +707,7 @@ class _ExpenseTile extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          '${expense.category.label}  •  ${localizations.formatMediumDate(expense.date)}',
+          '${l10n.categoryLabel(expense.category.name)}  •  ${localizations.formatMediumDate(expense.date)}',
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
@@ -689,11 +717,11 @@ class _ExpenseTile extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             PopupMenuButton<String>(
-              tooltip: 'Expense actions',
+              tooltip: l10n.t('expense_actions'),
               onSelected: (value) => value == 'edit' ? onEdit() : onDelete(),
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit')),
-                PopupMenuItem(value: 'delete', child: Text('Delete')),
+              itemBuilder: (context) => [
+                PopupMenuItem(value: 'edit', child: Text(l10n.t('edit'))),
+                PopupMenuItem(value: 'delete', child: Text(l10n.t('delete'))),
               ],
             ),
           ],

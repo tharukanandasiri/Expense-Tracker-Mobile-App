@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/expense_category.dart';
 
@@ -79,6 +80,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final localizations = MaterialLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -97,14 +99,14 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _isEditing ? 'Edit expense' : 'New expense',
+                    _isEditing ? l10n.t('edit_expense') : l10n.t('new_expense'),
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    tooltip: 'Close',
+                    tooltip: l10n.t('close'),
                     icon: const Icon(Icons.close_rounded),
                   ),
                 ],
@@ -114,9 +116,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 controller: _titleController,
                 autofocus: !_isEditing,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  hintText: 'e.g. Weekly groceries',
+                decoration: InputDecoration(
+                  labelText: l10n.t('title'),
+                  hintText: l10n.t('title_hint'),
                   prefixIcon: Icon(Icons.edit_note_rounded),
                 ),
                 validator: (value) => value == null || value.trim().isEmpty
@@ -130,9 +132,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                   decimal: true,
                 ),
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  hintText: '0.00',
+                decoration: InputDecoration(
+                  labelText: l10n.t('amount'),
+                  hintText: l10n.t('amount_hint'),
                   prefixText: 'LKR ',
                   prefixIcon: Icon(Icons.payments_outlined),
                 ),
@@ -147,15 +149,15 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
               const SizedBox(height: 14),
               DropdownButtonFormField<ExpenseCategory>(
                 initialValue: _category,
-                decoration: const InputDecoration(
-                  labelText: 'Category',
+                decoration: InputDecoration(
+                  labelText: l10n.t('category'),
                   prefixIcon: Icon(Icons.category_outlined),
                 ),
                 items: ExpenseCategory.values
                     .map(
                       (category) => DropdownMenuItem(
                         value: category,
-                        child: Text(category.label),
+                        child: Text(l10n.categoryLabel(category.name)),
                       ),
                     )
                     .toList(),
@@ -167,7 +169,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
               ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                 leading: const Icon(Icons.calendar_today_outlined),
-                title: const Text('Date'),
+                title: Text(l10n.t('date')),
                 subtitle: Text(localizations.formatMediumDate(_date)),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: _selectDate,
@@ -177,9 +179,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 controller: _noteController,
                 maxLines: 3,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Note (optional)',
-                  hintText: 'Add a little context',
+                decoration: InputDecoration(
+                  labelText: l10n.t('note_optional'),
+                  hintText: l10n.t('note_hint'),
                   prefixIcon: Icon(Icons.notes_rounded),
                   alignLabelWithHint: true,
                 ),
@@ -192,7 +194,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                   icon: Icon(
                     _isEditing ? Icons.check_rounded : Icons.add_rounded,
                   ),
-                  label: Text(_isEditing ? 'Save changes' : 'Add expense'),
+                  label: Text(
+                    _isEditing ? l10n.t('save_changes') : l10n.t('add_expense'),
+                  ),
                 ),
               ),
             ],

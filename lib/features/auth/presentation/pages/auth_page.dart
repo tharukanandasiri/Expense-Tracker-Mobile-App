@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthPage extends StatefulWidget {
@@ -80,6 +81,7 @@ class _AuthPageState extends State<AuthPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: SafeArea(
@@ -100,7 +102,7 @@ class _AuthPageState extends State<AuthPage> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Welcome to Ledgerly',
+                      l10n.t('welcome'),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
@@ -109,8 +111,8 @@ class _AuthPageState extends State<AuthPage> {
                     const SizedBox(height: 8),
                     Text(
                       _isRegistering
-                          ? 'Create an account to keep your expenses in sync.'
-                          : 'Sign in to access your expense history.',
+                          ? l10n.t('register_subtitle')
+                          : l10n.t('sign_in_subtitle'),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
@@ -121,13 +123,13 @@ class _AuthPageState extends State<AuthPage> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
+                      decoration: InputDecoration(
+                        labelText: l10n.t('email'),
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                       validator: (value) {
                         if (value == null || !value.contains('@')) {
-                          return 'Enter a valid email';
+                          return l10n.t('valid_email');
                         }
                         return null;
                       },
@@ -138,12 +140,12 @@ class _AuthPageState extends State<AuthPage> {
                       obscureText: true,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
+                      decoration: InputDecoration(
+                        labelText: l10n.t('password'),
                         prefixIcon: Icon(Icons.lock_outline_rounded),
                       ),
                       validator: (value) => value == null || value.length < 6
-                          ? 'Use at least 6 characters'
+                          ? l10n.t('min_password')
                           : null,
                     ),
                     if (_isRegistering) ...[
@@ -152,12 +154,12 @@ class _AuthPageState extends State<AuthPage> {
                         controller: _confirmPasswordController,
                         obscureText: true,
                         textInputAction: TextInputAction.done,
-                        decoration: const InputDecoration(
-                          labelText: 'Confirm password',
+                        decoration: InputDecoration(
+                          labelText: l10n.t('confirm_password'),
                           prefixIcon: Icon(Icons.lock_reset_outlined),
                         ),
                         validator: (value) => value != _passwordController.text
-                            ? 'Passwords do not match'
+                            ? l10n.t('passwords_match')
                             : null,
                       ),
                     ],
@@ -178,7 +180,11 @@ class _AuthPageState extends State<AuthPage> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(_isRegistering ? 'Create account' : 'Sign in'),
+                          : Text(
+                              _isRegistering
+                                  ? l10n.t('create_account')
+                                  : l10n.t('sign_in'),
+                            ),
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -187,7 +193,7 @@ class _AuthPageState extends State<AuthPage> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
-                            'OR',
+                            l10n.t('or'),
                             style: theme.textTheme.labelMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -200,7 +206,7 @@ class _AuthPageState extends State<AuthPage> {
                     OutlinedButton.icon(
                       onPressed: _isLoading ? null : _signInWithGoogle,
                       icon: const Icon(Icons.account_circle_outlined),
-                      label: const Text('Continue with Google'),
+                      label: Text(l10n.t('continue_google')),
                     ),
                     TextButton(
                       onPressed: _isLoading
@@ -211,8 +217,8 @@ class _AuthPageState extends State<AuthPage> {
                             }),
                       child: Text(
                         _isRegistering
-                            ? 'Already have an account? Sign in'
-                            : 'New here? Create an account',
+                            ? l10n.t('already_account')
+                            : l10n.t('new_here'),
                       ),
                     ),
                   ],

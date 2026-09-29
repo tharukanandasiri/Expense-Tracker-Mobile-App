@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'core/settings/app_settings_controller.dart';
+import 'core/localization/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'features/auth/data/repositories/firebase_auth_repository.dart';
 import 'features/auth/data/repositories/in_memory_auth_repository.dart';
 import 'features/auth/domain/entities/auth_user.dart';
@@ -73,6 +75,13 @@ class _MyAppState extends State<MyApp> {
         darkTheme: AppTheme.dark,
         themeMode: _themeController.themeMode,
         locale: _settingsController.locale,
+        supportedLocales: const [Locale('en'), Locale('si'), Locale('ta')],
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         home: _AuthGate(
           authRepository: widget.authRepository ?? InMemoryAuthRepository(),
           expenseRepository:

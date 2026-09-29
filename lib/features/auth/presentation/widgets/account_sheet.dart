@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/settings/app_settings_controller.dart';
 import '../../../expenses/domain/repositories/expense_repository.dart';
 import '../../domain/entities/auth_user.dart';
@@ -25,21 +26,20 @@ class AccountSheet extends StatefulWidget {
 
 class _AccountSheetState extends State<AccountSheet> {
   Future<void> _resetExpenses(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final shouldReset = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset expense history?'),
-        content: const Text(
-          'This permanently deletes every expense in your account. This action cannot be undone.',
-        ),
+        title: Text(l10n.t('delete_history_title')),
+        content: Text(l10n.t('delete_history_body')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.t('cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete everything'),
+            child: Text(l10n.t('delete_everything')),
           ),
         ],
       ),
@@ -52,9 +52,9 @@ class _AccountSheetState extends State<AccountSheet> {
       if (context.mounted) Navigator.of(context).pop(true);
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not reset expense history.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.t('reset_failed'))));
       }
     }
   }
@@ -70,15 +70,17 @@ class _AccountSheetState extends State<AccountSheet> {
     try {
       await widget.authRepository.changePassword(newPassword);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Password updated.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).t('password_updated')),
+          ),
+        );
       }
     } catch (_) {
       if (mounted) {
         final message = widget.user.isGoogleUser
-            ? 'Google accounts do not use an app password.'
-            : 'Could not update password. Sign in again and retry.';
+            ? AppLocalizations.of(context).t('google_no_password')
+            : AppLocalizations.of(context).t('password_failed');
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(message)));
@@ -92,9 +94,11 @@ class _AccountSheetState extends State<AccountSheet> {
       if (context.mounted) Navigator.of(context).pop();
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Could not sign out.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).t('sign_out_failed')),
+          ),
+        );
       }
     }
   }
@@ -103,6 +107,7 @@ class _AccountSheetState extends State<AccountSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return SafeArea(
       child: Padding(
@@ -110,7 +115,10 @@ class _AccountSheetState extends State<AccountSheet> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            Text('Account & settings', style: theme.textTheme.headlineSmall),
+            Text(
+              l10n.t('account_settings'),
+              style: theme.textTheme.headlineSmall,
+            ),
             const SizedBox(height: 18),
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -119,14 +127,14 @@ class _AccountSheetState extends State<AccountSheet> {
                 foregroundColor: colorScheme.onPrimaryContainer,
                 child: const Icon(Icons.person_outline_rounded),
               ),
-              title: const Text('Signed in as'),
+              title: Text(l10n.t('signed_in_as')),
               subtitle: Text(widget.user.email),
             ),
             const Divider(height: 28),
             DropdownButtonFormField<AppCurrency>(
               initialValue: widget.settingsController.currency,
-              decoration: const InputDecoration(
-                labelText: 'Currency',
+              decoration: InputDecoration(
+                labelText: l10n.t('currency'),
                 prefixIcon: Icon(Icons.payments_outlined),
               ),
               items: AppCurrency.values
@@ -146,8 +154,8 @@ class _AccountSheetState extends State<AccountSheet> {
             const SizedBox(height: 14),
             DropdownButtonFormField<AppLanguage>(
               initialValue: widget.settingsController.language,
-              decoration: const InputDecoration(
-                labelText: 'Language',
+              decoration: InputDecoration(
+                labelText: l10n.t('language'),
                 prefixIcon: Icon(Icons.language_rounded),
               ),
               items: AppLanguage.values
@@ -169,19 +177,19 @@ class _AccountSheetState extends State<AccountSheet> {
               OutlinedButton.icon(
                 onPressed: _changePassword,
                 icon: const Icon(Icons.lock_reset_outlined),
-                label: const Text('Change password'),
+                label: Text(l10n.t('change_password')),
               ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
               onPressed: () => _resetExpenses(context),
               icon: const Icon(Icons.delete_sweep_outlined),
-              label: const Text('Reset expense history'),
+              label: Text(l10n.t('reset_history')),
             ),
             const SizedBox(height: 10),
             FilledButton.tonalIcon(
               onPressed: () => _signOut(context),
               icon: const Icon(Icons.logout_rounded),
-              label: const Text('Sign out'),
+              label: Text(l10n.t('sign_out')),
             ),
           ],
         ),
@@ -211,8 +219,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Text('Change password'),
+      title: Text(l10n.t('change_password_title')),
       content: Form(
         key: _formKey,
         child: Column(
@@ -221,18 +230,20 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
             TextFormField(
               controller: _passwordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'New password'),
+              decoration: InputDecoration(labelText: l10n.t('new_password')),
               validator: (value) => value == null || value.length < 6
-                  ? 'Use at least 6 characters'
+                  ? l10n.t('min_password')
                   : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _confirmController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Confirm password'),
+              decoration: InputDecoration(
+                labelText: l10n.t('confirm_password'),
+              ),
               validator: (value) => value != _passwordController.text
-                  ? 'Passwords do not match'
+                  ? l10n.t('passwords_match')
                   : null,
             ),
           ],
@@ -241,7 +252,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(l10n.t('cancel')),
         ),
         FilledButton(
           onPressed: () {
@@ -249,7 +260,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
               Navigator.of(context).pop(_passwordController.text);
             }
           },
-          child: const Text('Update password'),
+          child: Text(l10n.t('update_password')),
         ),
       ],
     );
