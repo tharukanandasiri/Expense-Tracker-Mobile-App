@@ -218,6 +218,10 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
                 ),
               ),
             ),
+            if (monthExpenses.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              _CategorySummary(expenses: monthExpenses),
+            ],
             const SizedBox(height: 32),
             Text(
               'Recent expenses',
@@ -259,6 +263,74 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
         onPressed: () => _openExpenseForm(context),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add expense'),
+      ),
+    );
+  }
+}
+
+class _CategorySummary extends StatelessWidget {
+  const _CategorySummary({required this.expenses});
+
+  final List<Expense> expenses;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final totals = <ExpenseCategory, double>{};
+    for (final expense in expenses) {
+      totals.update(
+        expense.category,
+        (total) => total + expense.amount,
+        ifAbsent: () => expense.amount,
+      );
+    }
+
+    final sortedTotals = totals.entries.toList()
+      ..sort((first, second) => second.value.compareTo(first.value));
+    final largestTotal = sortedTotals.first.value;
+
+    return Card(
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Spending by category',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 18),
+            ...sortedTotals.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: Text(entry.key.label)),
+                        Text(
+                          'LKR ${entry.value.toStringAsFixed(2)}',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+                    LinearProgressIndicator(
+                      value: entry.value / largestTotal,
+                      minHeight: 7,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
