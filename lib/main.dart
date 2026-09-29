@@ -21,7 +21,6 @@ Future<void> main() async {
   await themeController.load();
   runApp(
     MyApp(
-      repository: FirestoreExpenseRepository(),
       authRepository: FirebaseAuthRepository(),
       themeController: themeController,
     ),
@@ -66,7 +65,11 @@ class _MyAppState extends State<MyApp> {
         themeMode: _themeController.themeMode,
         home: _AuthGate(
           authRepository: widget.authRepository ?? InMemoryAuthRepository(),
-          expenseRepository: widget.repository ?? InMemoryExpenseRepository(),
+          expenseRepository:
+              widget.repository ??
+              (widget.authRepository == null
+                  ? InMemoryExpenseRepository()
+                  : null),
           themeController: _themeController,
         ),
       ),
@@ -82,7 +85,7 @@ class _AuthGate extends StatelessWidget {
   });
 
   final AuthRepository authRepository;
-  final ExpenseRepository expenseRepository;
+  final ExpenseRepository? expenseRepository;
   final ThemeController themeController;
 
   @override
@@ -103,8 +106,11 @@ class _AuthGate extends StatelessWidget {
         if (snapshot.data == null) {
           return AuthPage(repository: authRepository);
         }
+        final repository =
+            expenseRepository ??
+            FirestoreExpenseRepository(userId: snapshot.data!.uid);
         return ExpensesPage(
-          repository: expenseRepository,
+          repository: repository,
           themeController: themeController,
         );
       },

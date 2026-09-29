@@ -4,13 +4,17 @@ import '../../domain/entities/expense.dart';
 import '../../domain/repositories/expense_repository.dart';
 
 class FirestoreExpenseRepository implements ExpenseRepository {
-  FirestoreExpenseRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreExpenseRepository({
+    required String userId,
+    FirebaseFirestore? firestore,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _userId = userId;
 
   final FirebaseFirestore _firestore;
+  final String _userId;
 
   CollectionReference<Map<String, dynamic>> get _expensesCollection =>
-      _firestore.collection('expenses');
+      _firestore.collection('users').doc(_userId).collection('expenses');
 
   @override
   Stream<List<Expense>> watchExpenses() {
