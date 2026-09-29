@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
+import 'core/settings/app_settings_controller.dart';
 import 'features/auth/data/repositories/firebase_auth_repository.dart';
 import 'features/auth/data/repositories/in_memory_auth_repository.dart';
 import 'features/auth/domain/entities/auth_user.dart';
@@ -19,10 +20,13 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final themeController = ThemeController();
   await themeController.load();
+  final settingsController = AppSettingsController();
+  await settingsController.load();
   runApp(
     MyApp(
       authRepository: FirebaseAuthRepository(),
       themeController: themeController,
+      settingsController: settingsController,
     ),
   );
 }
@@ -33,11 +37,13 @@ class MyApp extends StatefulWidget {
     this.repository,
     this.authRepository,
     this.themeController,
+    this.settingsController,
   });
 
   final ExpenseRepository? repository;
   final AuthRepository? authRepository;
   final ThemeController? themeController;
+  final AppSettingsController? settingsController;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -46,23 +52,27 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late final ThemeController _themeController =
       widget.themeController ?? ThemeController();
+  late final AppSettingsController _settingsController =
+      widget.settingsController ?? AppSettingsController();
 
   @override
   void dispose() {
     if (widget.themeController == null) _themeController.dispose();
+    if (widget.settingsController == null) _settingsController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _themeController,
+    return ListenableBuilder(
+      listenable: Listenable.merge([_themeController, _settingsController]),
       builder: (context, child) => MaterialApp(
         title: 'Ledgerly',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: _themeController.themeMode,
+        locale: _settingsController.locale,
         home: _AuthGate(
           authRepository: widget.authRepository ?? InMemoryAuthRepository(),
           expenseRepository:
@@ -71,6 +81,7 @@ class _MyAppState extends State<MyApp> {
                   ? InMemoryExpenseRepository()
                   : null),
           themeController: _themeController,
+          settingsController: _settingsController,
         ),
       ),
     );
@@ -82,11 +93,13 @@ class _AuthGate extends StatelessWidget {
     required this.authRepository,
     required this.expenseRepository,
     required this.themeController,
+    required this.settingsController,
   });
 
   final AuthRepository authRepository;
   final ExpenseRepository? expenseRepository;
   final ThemeController themeController;
+  final AppSettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +124,10 @@ class _AuthGate extends StatelessWidget {
             FirestoreExpenseRepository(userId: snapshot.data!.uid);
         return ExpensesPage(
           repository: repository,
+          authRepository: authRepository,
+          currentUser: snapshot.data!,
           themeController: themeController,
+          settingsController: settingsController,
         );
       },
     );

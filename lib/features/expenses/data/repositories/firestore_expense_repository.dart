@@ -39,4 +39,17 @@ class FirestoreExpenseRepository implements ExpenseRepository {
   Future<void> deleteExpense(String expenseId) {
     return _expensesCollection.doc(expenseId).delete();
   }
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    final snapshot = await _expensesCollection.get();
+    for (var start = 0; start < snapshot.docs.length; start += 500) {
+      final batch = _firestore.batch();
+      final end = (start + 500).clamp(0, snapshot.docs.length);
+      for (final document in snapshot.docs.sublist(start, end)) {
+        batch.delete(document.reference);
+      }
+      await batch.commit();
+    }
+  }
 }

@@ -9,5 +9,7 @@ abstract interface class AuthRepository {
 
   Future<AuthUser> signInWithGoogle();
 
+  Future<void> changePassword(String newPassword);
+
   Future<void> signOut();
 }

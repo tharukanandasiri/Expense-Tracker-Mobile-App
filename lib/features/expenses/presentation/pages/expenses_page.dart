@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/settings/app_settings_controller.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../auth/domain/entities/auth_user.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
+import '../../../auth/presentation/widgets/account_sheet.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/expense_category.dart';
 import '../../domain/repositories/expense_repository.dart';
@@ -18,11 +22,17 @@ class ExpensesPage extends StatelessWidget {
   const ExpensesPage({
     super.key,
     required this.repository,
+    required this.authRepository,
+    required this.currentUser,
     required this.themeController,
+    required this.settingsController,
   });
 
   final ExpenseRepository repository;
+  final AuthRepository authRepository;
+  final AuthUser currentUser;
   final ThemeController themeController;
+  final AppSettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +48,11 @@ class ExpensesPage extends StatelessWidget {
 
         return _ExpenseDashboard(
           repository: repository,
+          authRepository: authRepository,
+          currentUser: currentUser,
           expenses: snapshot.data!,
           themeController: themeController,
+          settingsController: settingsController,
         );
       },
     );
@@ -49,13 +62,19 @@ class ExpensesPage extends StatelessWidget {
 class _ExpenseDashboard extends StatefulWidget {
   const _ExpenseDashboard({
     required this.repository,
+    required this.authRepository,
+    required this.currentUser,
     required this.expenses,
     required this.themeController,
+    required this.settingsController,
   });
 
   final ExpenseRepository repository;
+  final AuthRepository authRepository;
+  final AuthUser currentUser;
   final List<Expense> expenses;
   final ThemeController themeController;
+  final AppSettingsController settingsController;
 
   @override
   State<_ExpenseDashboard> createState() => _ExpenseDashboardState();
@@ -150,6 +169,25 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
     }
   }
 
+  Future<void> _openAccountSheet() async {
+    final reset = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => AccountSheet(
+        user: widget.currentUser,
+        authRepository: widget.authRepository,
+        expenseRepository: widget.repository,
+        settingsController: widget.settingsController,
+      ),
+    );
+
+    if (reset == true && mounted) {
+      _showError(context, 'Expense history reset.');
+    }
+  }
+
   Future<void> _deleteExpense(BuildContext context, Expense expense) async {
     final shouldDelete = await showDialog<bool>(
       context: context,
@@ -201,7 +239,29 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
           ),
         ),
         actions: [
-          if (MediaQuery.sizeOf(context).width >= 240)
+          if (MediaQuery.sizeOf(context).width >= 360) ...[
+            PopupMenuButton<ThemeMode>(
+              tooltip: 'Choose appearance',
+              icon: Icon(_themeIcon(widget.themeController.themeMode)),
+              onSelected: widget.themeController.setThemeMode,
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: ThemeMode.system,
+                  child: Text('Use system theme'),
+                ),
+                PopupMenuItem(
+                  value: ThemeMode.light,
+                  child: Text('Light theme'),
+                ),
+                PopupMenuItem(value: ThemeMode.dark, child: Text('Dark theme')),
+              ],
+            ),
+            IconButton(
+              onPressed: _openAccountSheet,
+              tooltip: 'Open account',
+              icon: const Icon(Icons.person_outline_rounded),
+            ),
+          ] else if (MediaQuery.sizeOf(context).width >= 240)
             PopupMenuButton<ThemeMode>(
               tooltip: 'Choose appearance',
               icon: Icon(_themeIcon(widget.themeController.themeMode)),
@@ -246,7 +306,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'LKR ${_visibleTotal.toStringAsFixed(2)}',
+                      widget.settingsController.formatAmount(_visibleTotal),
                       style: theme.textTheme.displaySmall?.copyWith(
                         color: colorScheme.onPrimary,
                         fontWeight: FontWeight.w800,
@@ -283,7 +343,10 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
             ),
             if (monthExpenses.isNotEmpty) ...[
               const SizedBox(height: 24),
-              _CategorySummary(expenses: monthExpenses),
+              _CategorySummary(
+                expenses: monthExpenses,
+                settingsController: widget.settingsController,
+              ),
             ],
             const SizedBox(height: 32),
             Text(
@@ -338,6 +401,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
               ...monthExpenses.map(
                 (expense) => _ExpenseTile(
                   expense: expense,
+                  settingsController: widget.settingsController,
                   onEdit: () => _openExpenseForm(context, expense),
                   onDelete: () => _deleteExpense(context, expense),
                 ),
@@ -355,9 +419,13 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
 }
 
 class _CategorySummary extends StatelessWidget {
-  const _CategorySummary({required this.expenses});
+  const _CategorySummary({
+    required this.expenses,
+    required this.settingsController,
+  });
 
   final List<Expense> expenses;
+  final AppSettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
@@ -400,7 +468,7 @@ class _CategorySummary extends StatelessWidget {
                       children: [
                         Expanded(child: Text(entry.key.label)),
                         Text(
-                          'LKR ${entry.value.toStringAsFixed(2)}',
+                          settingsController.formatAmount(entry.value),
                           style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
                       ],
@@ -582,11 +650,13 @@ class _EmptyExpensesCard extends StatelessWidget {
 class _ExpenseTile extends StatelessWidget {
   const _ExpenseTile({
     required this.expense,
+    required this.settingsController,
     required this.onEdit,
     required this.onDelete,
   });
 
   final Expense expense;
+  final AppSettingsController settingsController;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -615,7 +685,7 @@ class _ExpenseTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'LKR ${expense.amount.toStringAsFixed(2)}',
+              settingsController.formatAmount(expense.amount),
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             PopupMenuButton<String>(

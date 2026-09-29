@@ -26,5 +26,8 @@ class InMemoryAuthRepository implements AuthRepository {
   Future<AuthUser> signInWithGoogle() => Future.value(_testUser);
 
   @override
+  Future<void> changePassword(String newPassword) async {}
+
+  @override
   Future<void> signOut() async {}
 }

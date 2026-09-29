@@ -23,4 +23,9 @@ class InMemoryExpenseRepository implements ExpenseRepository {
   Future<void> deleteExpense(String expenseId) async {
     _expenses.removeWhere((expense) => expense.id == expenseId);
   }
+
+  @override
+  Future<void> deleteAllExpenses() async {
+    _expenses.clear();
+  }
 }

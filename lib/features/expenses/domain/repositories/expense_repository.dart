@@ -6,4 +6,6 @@ abstract interface class ExpenseRepository {
   Future<void> saveExpense(Expense expense);
 
   Future<void> deleteExpense(String expenseId);
+
+  Future<void> deleteAllExpenses();
 }
