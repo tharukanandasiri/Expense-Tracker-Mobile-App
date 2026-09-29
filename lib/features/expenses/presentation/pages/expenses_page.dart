@@ -28,7 +28,7 @@ class ExpensesPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
           children: [
             Text(
-              'September overview',
+              '${MaterialLocalizations.of(context).formatMonthYear(DateTime.now())} overview',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
