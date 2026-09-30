@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/settings/app_settings_controller.dart';
 import '../../domain/entities/expense.dart';
 import '../../domain/entities/expense_category.dart';
 
 class ExpenseFormSheet extends StatefulWidget {
-  const ExpenseFormSheet({super.key, this.initialExpense});
+  const ExpenseFormSheet({
+    super.key,
+    this.initialExpense,
+    required this.settingsController,
+  });
 
   final Expense? initialExpense;
+  final AppSettingsController settingsController;
 
   @override
   State<ExpenseFormSheet> createState() => _ExpenseFormSheetState();
@@ -29,7 +35,11 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     final expense = widget.initialExpense;
     _titleController = TextEditingController(text: expense?.title);
     _amountController = TextEditingController(
-      text: expense?.amount.toStringAsFixed(2),
+      text: expense == null
+          ? null
+          : widget.settingsController
+                .convertFromLkr(expense.amount)
+                .toStringAsFixed(2),
     );
     _noteController = TextEditingController(text: expense?.note);
     _category = expense?.category ?? ExpenseCategory.food;
@@ -65,7 +75,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
           widget.initialExpense?.id ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       title: _titleController.text.trim(),
-      amount: double.parse(_amountController.text.trim()),
+      amount: widget.settingsController.convertToLkr(
+        double.parse(_amountController.text.trim()),
+      ),
       category: _category,
       date: _date,
       note: _noteController.text.trim().isEmpty
@@ -135,7 +147,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 decoration: InputDecoration(
                   labelText: l10n.t('amount'),
                   hintText: l10n.t('amount_hint'),
-                  prefixText: 'LKR ',
+                  prefixText: '${widget.settingsController.currency.label} ',
                   prefixIcon: Icon(Icons.payments_outlined),
                 ),
                 validator: (value) {

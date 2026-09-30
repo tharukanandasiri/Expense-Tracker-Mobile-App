@@ -158,7 +158,10 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
-      builder: (_) => ExpenseFormSheet(initialExpense: expense),
+      builder: (_) => ExpenseFormSheet(
+        initialExpense: expense,
+        settingsController: widget.settingsController,
+      ),
     );
 
     if (savedExpense == null || !context.mounted) return;

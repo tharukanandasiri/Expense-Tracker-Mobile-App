@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -31,6 +33,7 @@ Future<void> main() async {
       settingsController: settingsController,
     ),
   );
+  unawaited(settingsController.refreshRates());
 }
 
 class MyApp extends StatefulWidget {
