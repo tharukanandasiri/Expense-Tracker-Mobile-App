@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/settings/app_settings_controller.dart';
@@ -86,6 +87,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
   ExpenseCategory? _selectedCategory;
   DateTime? _selectedDate;
   String _searchQuery = '';
+  int _visibleLimit = 10;
 
   @override
   void initState() {
@@ -146,7 +148,12 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
       initialDate: _selectedDate ?? DateTime.now(),
     );
 
-    if (selectedDate != null) setState(() => _selectedDate = selectedDate);
+    if (selectedDate != null) {
+      setState(() {
+        _selectedDate = selectedDate;
+        _visibleLimit = 10;
+      });
+    }
   }
 
   Future<void> _openExpenseForm(
@@ -233,6 +240,8 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
     final monthExpenses = _visibleExpenses;
+    final displayedExpenses = monthExpenses.take(_visibleLimit).toList();
+    final hasMoreExpenses = displayedExpenses.length < monthExpenses.length;
 
     return Scaffold(
       appBar: AppBar(
@@ -370,7 +379,10 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
             const SizedBox(height: 12),
             TextField(
               controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value),
+              onChanged: (value) => setState(() {
+                _searchQuery = value;
+                _visibleLimit = 10;
+              }),
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 labelText: l10n.t('search_expenses'),
@@ -381,7 +393,10 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
                     : IconButton(
                         onPressed: () {
                           _searchController.clear();
-                          setState(() => _searchQuery = '');
+                          setState(() {
+                            _searchQuery = '';
+                            _visibleLimit = 10;
+                          });
                         },
                         tooltip: 'Clear search',
                         icon: const Icon(Icons.close_rounded),
@@ -392,14 +407,17 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
             _ExpenseFilters(
               selectedCategory: _selectedCategory,
               selectedDate: _selectedDate,
-              onCategorySelected: (category) =>
-                  setState(() => _selectedCategory = category),
+              onCategorySelected: (category) => setState(() {
+                _selectedCategory = category;
+                _visibleLimit = 10;
+              }),
               onDateSelected: _selectDate,
               onClear: () => setState(() {
                 _searchController.clear();
                 _searchQuery = '';
                 _selectedCategory = null;
                 _selectedDate = null;
+                _visibleLimit = 10;
               }),
             ),
             const SizedBox(height: 16),
@@ -410,12 +428,23 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
                 hasFilters: _hasFilters,
               )
             else
-              ...monthExpenses.map(
+              ...displayedExpenses.map(
                 (expense) => _ExpenseTile(
                   expense: expense,
                   settingsController: widget.settingsController,
                   onEdit: () => _openExpenseForm(context, expense),
                   onDelete: () => _deleteExpense(context, expense),
+                ),
+              ),
+            if (hasMoreExpenses)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Center(
+                  child: TextButton.icon(
+                    onPressed: () => setState(() => _visibleLimit += 10),
+                    icon: const Icon(Icons.expand_more_rounded),
+                    label: Text(l10n.t('see_more')),
+                  ),
                 ),
               ),
           ],
@@ -690,44 +719,128 @@ class _ExpenseTile extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
+  Future<void> _showLongPressActions(BuildContext context) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => Navigator.of(context).pop('edit'),
+                    icon: const Icon(Icons.edit_outlined),
+                    label: Text(l10n.t('edit')),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).pop('delete'),
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    label: Text(l10n.t('delete')),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (action == 'edit') onEdit();
+    if (action == 'delete') onDelete();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final localizations = MaterialLocalizations.of(context);
     final l10n = AppLocalizations.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.primaryContainer,
-          foregroundColor: colorScheme.onPrimaryContainer,
-          child: const Icon(Icons.payments_outlined),
-        ),
-        title: Text(
-          expense.title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          '${l10n.categoryLabel(expense.category.name)}  •  ${localizations.formatMediumDate(expense.date)}',
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
+    return Slidable(
+      key: ValueKey(expense.id),
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        extentRatio: 0.34,
+        children: [
+          CustomSlidableAction(
+            onPressed: (_) => onEdit(),
+            padding: const EdgeInsets.all(4),
+            backgroundColor: Colors.transparent,
+            child: Center(
+              child: SizedBox.square(
+                dimension: 48,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.edit_outlined,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          CustomSlidableAction(
+            onPressed: (_) => onDelete(),
+            padding: const EdgeInsets.all(4),
+            backgroundColor: Colors.transparent,
+            child: Center(
+              child: SizedBox.square(
+                dimension: 48,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.delete_outline_rounded,
+                    color: colorScheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onLongPress: () => _showLongPressActions(context),
+        child: Card(
+          margin: const EdgeInsets.only(bottom: 10),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 4,
+            ),
+            leading: CircleAvatar(
+              backgroundColor: colorScheme.primaryContainer,
+              foregroundColor: colorScheme.onPrimaryContainer,
+              child: const Icon(Icons.payments_outlined),
+            ),
+            title: Text(
+              expense.title,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              '${l10n.categoryLabel(expense.category.name)}  •  ${localizations.formatMediumDate(expense.date)}',
+            ),
+            trailing: Text(
               settingsController.formatAmount(expense.amount),
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
-            PopupMenuButton<String>(
-              tooltip: l10n.t('expense_actions'),
-              onSelected: (value) => value == 'edit' ? onEdit() : onDelete(),
-              itemBuilder: (context) => [
-                PopupMenuItem(value: 'edit', child: Text(l10n.t('edit'))),
-                PopupMenuItem(value: 'delete', child: Text(l10n.t('delete'))),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
