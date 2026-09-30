@@ -223,6 +223,26 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
 
     try {
       await widget.repository.deleteExpense(expense.id);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(l10n.t('expense_deleted')),
+            action: SnackBarAction(
+              label: l10n.t('undo'),
+              onPressed: () async {
+                try {
+                  await widget.repository.saveExpense(expense);
+                } catch (_) {
+                  if (context.mounted) {
+                    _showError(context, l10n.t('undo_failed'));
+                  }
+                }
+              },
+            ),
+          ),
+        );
     } catch (error) {
       if (context.mounted) _showError(context, 'Could not delete expense.');
     }
