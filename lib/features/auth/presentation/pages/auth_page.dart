@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/widgets/brand_name.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 class AuthPage extends StatefulWidget {
@@ -101,11 +102,21 @@ class _AuthPageState extends State<AuthPage> {
                       color: colorScheme.primary,
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      l10n.t('welcome'),
+                    RichText(
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+                      text: TextSpan(
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                        children: [
+                          TextSpan(text: l10n.t('welcome_prefix')),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: BrandName(
+                              style: theme.textTheme.headlineSmall,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 8),

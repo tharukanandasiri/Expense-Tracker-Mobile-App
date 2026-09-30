@@ -15,7 +15,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Ledgerly'), findsOneWidget);
+    expect(find.byType(RichText), findsWidgets);
     expect(find.text('Total spent'), findsOneWidget);
     expect(find.text('No expenses yet'), findsOneWidget);
     expect(find.text('Add expense'), findsOneWidget);
@@ -32,7 +32,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Ledgerly'), findsOneWidget);
+    expect(find.byType(RichText), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }

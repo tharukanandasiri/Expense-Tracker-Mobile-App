@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/settings/app_settings_controller.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../../../core/widgets/brand_name.dart';
 import '../../../auth/domain/entities/auth_user.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../auth/presentation/widgets/account_sheet.dart';
@@ -268,10 +269,7 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
         title: const FittedBox(
           fit: BoxFit.scaleDown,
           alignment: Alignment.centerLeft,
-          child: Text(
-            'Ledgerly',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
+          child: BrandName(),
         ),
         actions: [
           if (MediaQuery.sizeOf(context).width >= 360) ...[

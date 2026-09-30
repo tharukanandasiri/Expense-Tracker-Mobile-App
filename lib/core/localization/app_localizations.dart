@@ -28,7 +28,7 @@ class AppLocalizations {
 
   static const _translations = <String, Map<String, String>>{
     'en': {
-      'welcome': 'Welcome to Ledgerly',
+      'welcome_prefix': 'Welcome to ',
       'sign_in_subtitle': 'Sign in to access your expense history.',
       'register_subtitle': 'Create an account to keep your expenses in sync.',
       'email': 'Email',
@@ -111,7 +111,7 @@ class AppLocalizations {
       'other': 'Other',
     },
     'si': {
-      'welcome': 'Ledgerly වෙත සාදරයෙන් පිළිගනිමු',
+      'welcome_prefix': ' වෙත සාදරයෙන් පිළිගනිමු ',
       'sign_in_subtitle': 'ඔබේ වියදම් ඉතිහාසයට ප්‍රවේශ වීමට පුරනය වන්න.',
       'register_subtitle': 'ඔබේ වියදම් සමමුහුර්ත කිරීමට ගිණුමක් සාදන්න.',
       'email': 'විද්‍යුත් තැපෑල',
@@ -186,7 +186,7 @@ class AppLocalizations {
       'other': 'වෙනත්',
     },
     'ta': {
-      'welcome': 'Ledgerly க்கு வரவேற்கிறோம்',
+      'welcome_prefix': ' க்கு வரவேற்கிறோம் ',
       'sign_in_subtitle': 'உங்கள் செலவு வரலாற்றை அணுக உள்நுழையவும்.',
       'register_subtitle': 'செலவுகளை ஒத்திசைக்க கணக்கை உருவாக்கவும்.',
       'email': 'மின்னஞ்சல்',

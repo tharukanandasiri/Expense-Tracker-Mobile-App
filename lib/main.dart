@@ -72,7 +72,7 @@ class _MyAppState extends State<MyApp> {
     return ListenableBuilder(
       listenable: Listenable.merge([_themeController, _settingsController]),
       builder: (context, child) => MaterialApp(
-        title: 'Ledgerly',
+        title: 'VaultSync',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
