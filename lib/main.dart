@@ -16,7 +16,7 @@ import 'features/auth/presentation/pages/auth_page.dart';
 import 'features/expenses/data/repositories/firestore_expense_repository.dart';
 import 'features/expenses/data/repositories/in_memory_expense_repository.dart';
 import 'features/expenses/domain/repositories/expense_repository.dart';
-import 'features/expenses/presentation/pages/expenses_page.dart';
+import 'features/navigation/presentation/pages/vaultsync_shell.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -134,7 +134,7 @@ class _AuthGate extends StatelessWidget {
         final repository =
             expenseRepository ??
             FirestoreExpenseRepository(userId: snapshot.data!.uid);
-        return ExpensesPage(
+        return VaultSyncShell(
           repository: repository,
           authRepository: authRepository,
           currentUser: snapshot.data!,

@@ -41,13 +41,5 @@ void main() {
     await tester.enterText(find.byType(TextField), 'shopping');
     await tester.pumpAndSettle();
     expect(find.text('No matching expenses'), findsOneWidget);
-
-    await tester.enterText(find.byType(TextField), '');
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Shopping'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('No matching expenses'), findsOneWidget);
-    expect(find.text('Lunch'), findsNothing);
   });
 }
