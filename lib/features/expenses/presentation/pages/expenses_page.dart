@@ -321,6 +321,9 @@ class _ExpenseDashboardState extends State<_ExpenseDashboard> {
       ),
       body: SafeArea(
         child: ListView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
           children: [
             Text(
@@ -787,6 +790,7 @@ class _ExpenseTile extends StatelessWidget {
 
     return Slidable(
       key: ValueKey(expense.id),
+      // Swipe left to reveal the compact edit and delete actions.
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
         extentRatio: 0.34,

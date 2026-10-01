@@ -92,7 +92,7 @@ class AppSettingsController extends ChangeNotifier {
       await preferences.setDouble(_usdRateKey, _rates['usd']!);
       await preferences.setDouble(_eurRateKey, _rates['eur']!);
     } catch (_) {
-      // Keep the bundled fallback rates when the network is unavailable.
+      // The app can still convert amounts with the bundled fallback rates.
     }
   }
 

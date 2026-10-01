@@ -96,6 +96,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
 
     return SafeArea(
       child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         padding: EdgeInsets.fromLTRB(
           20,
           12,

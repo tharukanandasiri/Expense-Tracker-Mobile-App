@@ -43,6 +43,7 @@ class FirestoreExpenseRepository implements ExpenseRepository {
   @override
   Future<void> deleteAllExpenses() async {
     final snapshot = await _expensesCollection.get();
+    // Firestore accepts at most 500 writes in one batch.
     for (var start = 0; start < snapshot.docs.length; start += 500) {
       final batch = _firestore.batch();
       final end = (start + 500).clamp(0, snapshot.docs.length);

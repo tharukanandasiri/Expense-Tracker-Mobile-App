@@ -101,6 +101,8 @@ class _InsightsPageState extends State<_InsightsPage> {
     _comparisonMonth = DateTime(now.year, now.month - 1);
   }
 
+  // Both months can move independently, but future months are not allowed.
+
   Future<void> _selectMonth({required bool current}) async {
     final selected = await showDatePicker(
       context: context,
@@ -206,6 +208,9 @@ class _InsightsPageState extends State<_InsightsPage> {
         return Scaffold(
           appBar: AppBar(title: Text(l10n.t('insights_tab'))),
           body: ListView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
             children: [
               Text(
@@ -225,6 +230,9 @@ class _InsightsPageState extends State<_InsightsPage> {
               _MonthSelector(
                 label: l10n.t('current_month'),
                 month: _currentMonth,
+                previousLabel: l10n.t('previous_month'),
+                nextLabel: l10n.t('next_month'),
+                chooseLabel: l10n.t('choose_month'),
                 onPrevious: () => _shiftMonth(current: true, offset: -1),
                 onNext: _isCurrentMonth(_currentMonth)
                     ? null
@@ -235,6 +243,9 @@ class _InsightsPageState extends State<_InsightsPage> {
               _MonthSelector(
                 label: l10n.t('comparison_month'),
                 month: _comparisonMonth,
+                previousLabel: l10n.t('previous_month'),
+                nextLabel: l10n.t('next_month'),
+                chooseLabel: l10n.t('choose_month'),
                 onPrevious: () => _shiftMonth(current: false, offset: -1),
                 onNext: _isCurrentMonth(_comparisonMonth)
                     ? null
@@ -316,6 +327,9 @@ class _MonthSelector extends StatelessWidget {
   const _MonthSelector({
     required this.label,
     required this.month,
+    required this.previousLabel,
+    required this.nextLabel,
+    required this.chooseLabel,
     required this.onPrevious,
     required this.onNext,
     required this.onPick,
@@ -323,6 +337,9 @@ class _MonthSelector extends StatelessWidget {
 
   final String label;
   final DateTime month;
+  final String previousLabel;
+  final String nextLabel;
+  final String chooseLabel;
   final VoidCallback onPrevious;
   final VoidCallback? onNext;
   final VoidCallback onPick;
@@ -334,21 +351,25 @@ class _MonthSelector extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onPrevious,
-          tooltip: 'Previous month',
+          tooltip: previousLabel,
           icon: const Icon(Icons.chevron_left_rounded),
         ),
         Expanded(
           child: OutlinedButton(
             onPressed: onPick,
-            child: Text(
-              '$label • ${localizations.formatMonthYear(month)}',
-              overflow: TextOverflow.ellipsis,
+            child: Semantics(
+              button: true,
+              label: chooseLabel,
+              child: Text(
+                '$label • ${localizations.formatMonthYear(month)}',
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
         ),
         IconButton(
           onPressed: onNext,
-          tooltip: 'Next month',
+          tooltip: nextLabel,
           icon: const Icon(Icons.chevron_right_rounded),
         ),
       ],

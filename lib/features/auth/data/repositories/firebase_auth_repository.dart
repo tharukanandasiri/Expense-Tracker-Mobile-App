@@ -66,7 +66,9 @@ class FirebaseAuthRepository implements AuthRepository {
   Future<void> changePassword(String newPassword) async {
     final user = _auth.currentUser;
     if (user == null) throw FirebaseAuthException(code: 'no-current-user');
-    if (user.providerData.any((provider) => provider.providerId == 'google.com')) {
+    if (user.providerData.any(
+      (provider) => provider.providerId == 'google.com',
+    )) {
       throw FirebaseAuthException(code: 'google-account');
     }
     await user.updatePassword(newPassword);

@@ -114,6 +114,9 @@ class _AccountSheetState extends State<AccountSheet> {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
         child: ListView(
           shrinkWrap: true,
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           children: [
             Text(
               l10n.t('account_settings'),

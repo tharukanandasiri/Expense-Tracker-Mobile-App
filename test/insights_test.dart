@@ -43,5 +43,22 @@ void main() {
     expect(find.text('Spending comparison'), findsOneWidget);
     expect(find.text('Category comparison'), findsOneWidget);
     expect(find.byType(BarChart), findsOneWidget);
+
+    await tester.drag(find.byType(ListView), const Offset(0, 500));
+    await tester.pumpAndSettle();
+
+    expect(find.byTooltip('Previous month'), findsNWidgets(2));
+    expect(find.byTooltip('Next month'), findsNWidgets(2));
+
+    await tester.tap(find.byTooltip('Previous month').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Next month').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(OutlinedButton).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(CalendarDatePicker), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
   });
 }
